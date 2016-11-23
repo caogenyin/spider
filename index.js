@@ -1,11 +1,11 @@
 const express = require('express'),
     fs = require('fs'),
-    eventproxy = require('eventproxy');//控制并发
+    async = require('async');//控制并发
 
 const app = express();
 
 app.get('/', function(req,res) {
-    res.send('Hello World!')
+    res.send('Hello World!');
 })
 
 app.get('/weather',function(req,res) {
@@ -19,6 +19,8 @@ app.get('/weather',function(req,res) {
 
 app.get('/mfw',function(req, res, next) {
     var mfw = require('./mfw/spider.js');
+    // mfw.getLinks();
+    mfw.getDetail();
 
     // mfw.getHtml('http://www.mafengwo.cn/wenda/', function(data){
     //     res.json(data);
@@ -29,22 +31,22 @@ app.get('/mfw',function(req, res, next) {
     // });
     
 
-    var tempArr = [];
-    mfw.getQuestionList('http://www.mafengwo.cn/wenda/', function(data){
-        var count = 0;
-        data.forEach(function(item){  
-            mfw.getDetail(item, function(data){
-                count++;
-                tempArr.push(data);
-                handleFn();
-            });
-        });
-        function handleFn(){
-            if (count === data.length) {
-                res.json({questionList:tempArr});
-            }
-        }
-    });
+    // var tempArr = [];
+    // mfw.getQuestionList('http://www.mafengwo.cn/wenda/', function(data){
+    //     var count = 0;
+    //     data.forEach(function(item){  
+    //         mfw.getDetail(item, function(data){
+    //             count++;
+    //             tempArr.push(data);
+    //             handleFn();
+    //         });
+    //     });
+    //     function handleFn(){
+    //         if (count === data.length) {
+    //             res.json({questionList:tempArr});
+    //         }
+    //     }
+    // });
     
     // var tempArr = [],
     //     count = 0,
@@ -86,10 +88,10 @@ app.get('/mfw',function(req, res, next) {
         
 });
 
-// var server = app.listen(3000, function () {
-//     var host = server.address().address;
-//     var port = server.address().port;
+var server = app.listen(3000, function () {
+    var host = server.address().address;
+    var port = server.address().port;
 
-//     console.log('Example app listening at http://%s:%s', host, port);
-// });
-app.listen(process.env.PORT);
+    console.log('Example app listening at http://%s:%s', host, port);
+});
+// app.listen(process.env.PORT);

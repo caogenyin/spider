@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/caogenyin/spider#readme",
   "dependencies": {
+    "async": "^2.1.4",
     "cheerio": "^0.22.0",
     "eventproxy": "^0.3.5",
     "express": "^4.14.0",
