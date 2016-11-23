@@ -1,7 +1,7 @@
 const cheerio = require('cheerio'),//Node.js版的jQuery
     superagent = require('superagent'),//客户端http请求
     fs = require('fs'),
-    async = require('async');
+    async = require('async');//控制并发
 
 
 function getHtml(url,callback) {
