@@ -1,6 +1,6 @@
 const express = require('express'),
     fs = require('fs'),
-    async = require('async');//控制并发
+    async = require('async');//异步流程控制，http://blog.csdn.net/marujunyy/article/details/8695205
 
 const app = express();
 
@@ -32,8 +32,8 @@ app.get('/weather/:cityname',function(req,res) {
 app.get('/mfw',function(req, res, next) {
     var mfw = require('./mfw/spider.js');
     res.send('数据抓取中...');
-    mfw.getLinks();
-    // mfw.getDetail();
+    // mfw.getLinks();
+    mfw.getDetail();
 
     // mfw.getHtml('http://www.mafengwo.cn/wenda/', function(data){
     //     res.json(data);
@@ -59,10 +59,10 @@ app.get('/mfw',function(req, res, next) {
         
 });
 
-// var server = app.listen(3000, function () {
-//     var host = server.address().address;
-//     var port = server.address().port;
+var server = app.listen(3000, function () {
+    var host = server.address().address;
+    var port = server.address().port;
 
-//     console.log('Example app listening at http://%s:%s', host, port);
-// });
-app.listen(process.env.PORT);
+    console.log('Example app listening at http://%s:%s', host, port);
+});
+// app.listen(process.env.PORT);

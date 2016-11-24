@@ -19,7 +19,7 @@ function getWeather(cityName, callback){
        });
 }
 
-
+// 获取7天天气
 function getWeather7Days(url,callback) {
     
     var tempArr = [];
