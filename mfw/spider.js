@@ -39,7 +39,7 @@ var count = 0;
 // 获取问答详情
 function getDetail(){
     var fetchUrl = function (url, callback) {
-        console.log('正在抓取的是', url);
+        
         // 发起请求
         superagent.get(url)
         .end(function (err, sres) {
@@ -71,34 +71,51 @@ function getDetail(){
             });
 
             obj.answers = answerList;
-            // resultArray.push(JSON.stringify(obj));
+            console.log('正在抓取的是', url);
             // 执行回调
             callback(null, JSON.stringify(obj));
         });
     };
-    fs.readFile('./data/links.txt', 'utf-8', function(err, data){
-        if (err) throw err;
-        var urls = data.split(',');
-        async.mapLimit(urls, 10, 
-            function (url, callback) {
-                fetchUrl(url, callback);
-            }, 
-            function (err, result) {
-                // console.log(result)
-                fs.writeFile('./data/a.txt', result, function(err){
-                    if (err) throw err;
-                });
-                
-            }
-        );
-    });
+    if (fs.existsSync('./data/links.txt')) {
+        fs.open('./data/links.txt', 'r', function(err, fd) {
+            if (err) { throw err }
+            fs.readFile('./data/links.txt', 'utf-8', function(err, data){
+                if (err) throw err;
+                var urls = data.split(',');
+                async.mapLimit(urls, 100, 
+                    function (url, callback) {
+                        fetchUrl(url, callback);
+                    }, 
+                    function (err, result) {
+                        console.log(result.length);
+                        // fs.writeFile('./data/a.txt', result, function(err){
+                        //     if (err) throw err;
+                        //     console.log('抓取完成');
+                        //     callbackFn();
+                        // });
+                        
+                        var len = result.length;
+                        for (var i = 0; i < len; i++) {
+                            fs.appendFileSync('./data/'+parseInt((i+1)/100)+'.txt', result[i], 'utf8', '0o666', 'a');
+                            if (i%100 === 0) {
+                                console.log('抓取'+i+'条');
+                            }
+                        }
+                    }
+                );
+            });
+        });
+            
+    } else {
+        new Error('文件不存在');
+    }
     
 }
 
-function getLinks(){
+function getLinks(callbackFn){
     // Ajax获取问答详情链接
     function getQuestionListAjax(url,callback){
-        console.log('正在抓取的是', url);
+        
         // 问题链接数组
         var urlArr = [];
         // 发起请求
@@ -107,46 +124,61 @@ function getLinks(){
             if (err) {
                 callback(err);
             }
-            var tempObj = JSON.parse(sres.text);
-            var $ = cheerio.load(tempObj.data.html);
-            // 遍历问题列表，提取详情链接
-            $('.item').each(function(index, el) {
-                var detailUrl = 'http://www.mafengwo.cn'+$(this).find('.title a').attr('href');
-                urlArr.push(detailUrl);
-            });
-            // 重新组装
-            var resultObj = {
-                has_more: tempObj.data.has_more,
-                total: tempObj.data.total,
-                urls: urlArr
+            try{
+                var tempObj = JSON.parse(sres.text);
+                var $ = cheerio.load(tempObj.data.html);
+                // 遍历问题列表，提取详情链接
+                $('.item').each(function(index, el) {
+                    var detailUrl = 'http://www.mafengwo.cn'+$(this).find('.title a').attr('href');
+                    urlArr.push(detailUrl);
+                });
+                // 重新组装
+                var resultObj = {
+                    has_more: tempObj.data.has_more,
+                    total: tempObj.data.total,
+                    urls: urlArr
+                }
+                callback(null, resultObj);
+                console.log('正在抓取的是', url);
+            }catch(e){
+                throw e
             }
-            callback(null, resultObj);
+                
         });
         
             
     };
 
     var urls = [],
-        totalPage = parseInt(25804/20);
-    for(var i = 0; i < 25; i++) {
-      urls.push('http://www.mafengwo.cn/qa/ajax_qa/more?type=0&mddid=&tid=&sort=1&key=&page=' + i);
+        totalPage = parseInt(500/20);
+    for(var i = 0; i < totalPage; i++) {
+      urls.push('http://www.mafengwo.cn/qa/ajax_qa/more?type=1&mddid=&tid=&sort=1&key=&page=' + i);
     }
 
-    async.mapLimit(urls, 5, 
+    async.mapLimit(urls, 100, 
         function (url, callback) {
             getQuestionListAjax(url, callback);
         }, 
         function (err, result) {
+            // console.log(JSON.parse(result));
             var detailUrls = [];
             for (var i = 0; i < result.length; i++) {
-                if(Object.prototype.toString.call(result[i].urls) === '[object Array]' && result[i].urls.length > 0){
-                    detailUrls = detailUrls.concat(result[i].urls);
-                };
+                
+                // if(Object.prototype.toString.call(result[i].urls) === '[object Array]' && result[i].urls.length > 0){
+                //     detailUrls = detailUrls.concat(result[i].urls);
+                //     // fs.appendFileSync('./data/links.txt', result[i].urls, 'utf8', '0o666', 'a');
+                // };
+                // if (i+1 === result.length) {
+                //     console.log('地址抓取结束');
+                // }
             }
 
-            fs.writeFile('./data/links.txt', detailUrls, function(err){
-                if (err) throw err;
-            });
+            // getDetail();
+
+            // fs.writeFile('./data/links.txt', detailUrls, function(err){
+            //     if (err) throw err;
+            //     getDetail();
+            // });
             
         }
     );
